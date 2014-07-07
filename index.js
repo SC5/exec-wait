@@ -41,18 +41,34 @@ exports = module.exports = function(options) {
       args = options.args || [],
       retries = options.retries || 5,
       retryInterval = options.retryInterval || 1000,
-      child;
+      stopSignal = options.stopSignal || 'SIGTERM',
+      restart = options.restart || false,
+      child,
+      isRunning = false;
+
+  function handleExit() {
+    // In case of error, we've really got an error
+    log(name, 'exited with error code', code);
+    isRunning = false;
+  }
 
   function start() {
     return new Promise(function(resolve, reject) {
+      // If we're already running, no need to start again
+      if (isRunning && !restart) {
+        log(name, 'already started');
+        return Promise.resolve();
+      }
+
       log(name, 'starting');
+      isRunning = false;
 
       // Launch the child process
       child = spawn(cmd, args, { detached: false });
 
       // If we've got a monitor of some short, we should not exit prior we've
       // received something to the monitor
-      function handleExit(code, signal) {
+      function handlePrematureExit(code, signal) {
         if (options.monitor) {
           return reject(new Error(name + ' exited prematurely.'));
         }
@@ -62,7 +78,7 @@ exports = module.exports = function(options) {
           return reject(new Error(name + ' exited with error code ' + code));
         }
       }
-      child.on('exit', handleExit);
+      child.once('exit', handlePrematureExit);
 
       // Create a HTTP connection handling function that can be retried
       function connect(u, retries, retryInterval) {
@@ -98,19 +114,18 @@ exports = module.exports = function(options) {
               connect(u, retries-1, retryInterval);
             }, retryInterval);
           }
-        });
+        })
       }
 
       // If we're monitoring stdout, create a stdout listener
       if (monitor && monitor.stdout) {
         child.stdout.on('data', function(data) {
           var str = String(data);
+          //log(str);
 
           // Wait for a string to resolve we're done
           if (str.match(monitor.stdout)) {
-            // Resolve hte startup process
-            child.removeListener('exit', handleExit);
-
+            // Resolve the startup process
             log(name, 'got stdout response - running');
             resolve();
           }
@@ -121,22 +136,41 @@ exports = module.exports = function(options) {
       if (monitor && monitor.url) {
         connect(monitor.url, retries, retryInterval);
       }
+    })
+    .then(function() {
+      // Update the state
+      isRunning = true;
+      return Promise.resolve(true);
     });
   }
 
   function stop() {
     return new Promise(function(resolve, reject) {
+      log(name, 'stopping');
+      // Don't exit if we already have
+      if (!running()) {
+        return resolve();
+      }
+
       child.on('exit', function(code, signal) {
-        log(name + ' terminated');
         resolve();
       });
 
-      child.kill('SIGTERM');
-    });
+      child.kill(stopSignal);
+    })
+    .then(function() {
+      log(name, 'stopped');
+      isRunning = false;
+    })
+  }
+
+  function running() {
+    return isRunning;
   }
 
   return {
     start: start,
-    stop: stop
+    stop: stop,
+    running: running
   };
 }
