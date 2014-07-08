@@ -6,32 +6,8 @@ spawn = require('child_process').spawn,
 
 /**
  * Exec utility for external processes.
- * Sample use:
  *
- * var ghostDriver = exec({
- *   name: 'Ghostdriver',
- *   cmd: path.join(require.resolve('phantomjs'), '../phantom/bin',
- *     'phantomjs' + (process.platform === 'win32' ? '.exe' : '')),
- *   args: ['--webdriver=4444', '--ignore-ssl-errors=true'],
- *   monitor: { stdout: 'GhostDriver - Main - running on port 4444' }
- * });
- *
- * var cmdAndArgs = require('package.json).scripts.start.split(/\s/),
- *   testServer = exec({
- *     name: 'Test server',
- *     cmd: cmdAndArgs[0],
- *     args: cmdAndArgs.slice(1),
- *     monitor: { url: 'http://localhost:8080/' },
- *     log: console.warn
- *   });
- *
- * testServer.start()
- *   .then(ghostDriver.start)
- *   .then(function() {
- *     // Do something
- *   })
- *   .then(ghostDriver.stop)
- *   .then(testServer.stop);
+ * See the usage from README.md
  */
 exports = module.exports = function(options) {
   var monitor = options.monitor,
@@ -89,13 +65,15 @@ exports = module.exports = function(options) {
             hostname: parsed.hostname || 'localhost',
             path: parsed.path || '/'
           },
-          connection;
+          connection,
+          checkResponse = (typeof monitor.checkHTTPResponse === 'boolean') ?
+            monitor.checkHTTPResponse: true;
 
         connection = protocol.get(options, function(response) {
           var code = response.statusCode;
 
-          // Only accept responses with 200 series
-          if (code < 200 || code >= 300) {
+          // In case we're not monitoring errors, only accept the 200 series responses
+          if (checkResponse && (code < 200 || code >= 300)) {
             reject(name + ' URL monitor failed with status code ' + code);
           }
 

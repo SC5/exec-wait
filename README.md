@@ -25,7 +25,10 @@ Useful e.g. for test automation process chains etc.
         name: 'Test server',
         cmd: cmdAndArgs[0],
         args: cmdAndArgs.slice(1),
-        monitor: { url: 'http://localhost:8080/' }
+        monitor: {
+          url: 'http://localhost:8080/',
+          checkHTTPResponse: false
+        }
       });
 
     testServer.start()
