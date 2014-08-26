@@ -20,7 +20,7 @@ Useful e.g. for test automation process chains etc.
       monitor: { stdout: 'GhostDriver - Main - running on port 4444' }
     });
 
-    var cmdAndArgs = require('package.json).scripts.start.split(/\s/),
+    var cmdAndArgs = require('package.json').scripts.start.split(/\s/),
       testServer = exec({
         name: 'Test server',
         cmd: cmdAndArgs[0],
