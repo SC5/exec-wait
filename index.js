@@ -59,7 +59,7 @@ exports = module.exports = function(options) {
       // Create a HTTP connection handling function that can be retried
       function connect(u, retries, retryInterval) {
         var parsed = url.parse(u),
-          protocol = (parsed.protocol === 'https') ? https : http,
+          protocol = (parsed.protocol === 'https:') ? https : http,
           options = {
             port: parsed.port,
             hostname: parsed.hostname || 'localhost',
