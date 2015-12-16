@@ -28,7 +28,8 @@ Useful e.g. for test automation process chains etc.
         monitor: {
           url: 'http://localhost:8080/',
           checkHTTPResponse: false
-        }
+        },
+        strictSSL: false
       });
 
     testServer.start()
@@ -38,6 +39,8 @@ Useful e.g. for test automation process chains etc.
       })
       .then(ghostDriver.stop)
       .then(testServer.stop);
+
+The option strictSSL defines whether the validity of the certificate is verified. The default is true, set to false for e.g. self-signed certificates.
 
 ## License
 
