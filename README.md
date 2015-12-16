@@ -28,6 +28,9 @@ Useful e.g. for test automation process chains etc.
         monitor: {
           url: 'http://localhost:8080/',
           checkHTTPResponse: false
+        },
+        httpOptions: {
+          rejectUnauthorized: false
         }
       });
 
@@ -38,6 +41,8 @@ Useful e.g. for test automation process chains etc.
       })
       .then(ghostDriver.stop)
       .then(testServer.stop);
+
+httpOptions can be used to pass options to http / https modules. e.g. rejectUnauthorized skips certificate validity checks (required for self-signed certificates)
 
 ## License
 

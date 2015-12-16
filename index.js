@@ -20,6 +20,7 @@ exports = module.exports = function(options) {
       stopSignal = options.stopSignal || 'SIGTERM',
       restart = options.restart || false,
       child,
+      httpOptions = options.httpOptions || {},
       isRunning = false;
 
   function handleExit() {
@@ -60,14 +61,18 @@ exports = module.exports = function(options) {
       function connect(u, retries, retryInterval) {
         var parsed = url.parse(u),
           protocol = (parsed.protocol === 'https:') ? https : http,
-          options = {
-            port: parsed.port,
-            hostname: parsed.hostname || 'localhost',
-            path: parsed.path || '/'
-          },
+          options = httpOptions,
           connection,
           checkResponse = (typeof monitor.checkHTTPResponse === 'boolean') ?
             monitor.checkHTTPResponse: true;
+
+        options.port = parsed.port;
+        options.hostname = parsed.hostname || 'localhost';
+        options.path = parsed.path || '/';
+  
+        if (parsed.protocol === 'https:') {
+          options.agent = new https.Agent(options);
+        }
 
         connection = protocol.get(options, function(response) {
           var code = response.statusCode;
@@ -83,9 +88,9 @@ exports = module.exports = function(options) {
         })
 
         // Monitor for connection errors to trigger retries.
-        connection.on('error', function() {
+        connection.on('error', function(e) {
           log(name, 'error in connecting to', u);
-
+          log(e.toString());
           // Retry after a timeout
           if (retries > 0) {
             setTimeout(function() {
