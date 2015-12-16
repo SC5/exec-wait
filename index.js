@@ -19,8 +19,8 @@ exports = module.exports = function(options) {
       retryInterval = options.retryInterval || 1000,
       stopSignal = options.stopSignal || 'SIGTERM',
       restart = options.restart || false,
-      strictSSL = (options.strictSSL == false) ? false : true, 
       child,
+      httpOptions = options.httpOptions || {},
       isRunning = false;
 
   function handleExit() {
@@ -61,17 +61,16 @@ exports = module.exports = function(options) {
       function connect(u, retries, retryInterval) {
         var parsed = url.parse(u),
           protocol = (parsed.protocol === 'https:') ? https : http,
-          options = {
-            port: parsed.port,
-            hostname: parsed.hostname || 'localhost',
-            path: parsed.path || '/'
-          },
+          options = httpOptions,
           connection,
           checkResponse = (typeof monitor.checkHTTPResponse === 'boolean') ?
             monitor.checkHTTPResponse: true;
-        
+
+        options.port = parsed.port;
+        options.hostname = parsed.hostname || 'localhost';
+        options.path = parsed.path || '/';
+  
         if (parsed.protocol === 'https:') {
-          options.rejectUnauthorized = strictSSL;
           options.agent = new https.Agent(options);
         }
 

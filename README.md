@@ -29,7 +29,9 @@ Useful e.g. for test automation process chains etc.
           url: 'http://localhost:8080/',
           checkHTTPResponse: false
         },
-        strictSSL: false
+        httpOptions: {
+          rejectUnauthorized: false
+        }
       });
 
     testServer.start()
@@ -40,7 +42,7 @@ Useful e.g. for test automation process chains etc.
       .then(ghostDriver.stop)
       .then(testServer.stop);
 
-The option strictSSL defines whether the validity of the certificate is verified. The default is true, set to false for e.g. self-signed certificates.
+httpOptions can be used to pass options to http / https modules. e.g. rejectUnauthorized skips certificate validity checks (required for self-signed certificates)
 
 ## License
 
