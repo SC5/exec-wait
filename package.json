@@ -1,6 +1,6 @@
 {
   "name": "exec-wait",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Simple, promiseful execution utility for spawning processes and monitor that they really started.",
   "main": "index.js",
   "scripts": {
